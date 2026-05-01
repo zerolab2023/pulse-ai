@@ -12,13 +12,7 @@ html {
   scroll-behavior: smooth;
 }
 
-.gradient-text {
-  background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.card-glow:hover {
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
+body {
+  background: white;
+  color: #0a0a0a;
 }
