@@ -1,0 +1,245 @@
+<title>Pulse-AI · 전체 그림과 한계</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#F4F7F7; --surface:#FFFFFF; --surface-2:#EEF3F3;
+    --ink:#13202A; --muted:#59696F; --faint:#8A999E; --line:#E1E9E9;
+    --accent:#0E7C7B; --accent-soft:#DBEDEB; --accent-ink:#0A5A59;
+    --done:#2C875F; --done-soft:#DDEFE6;
+    --partial:#B5820F; --partial-soft:#F4EBD3;
+    --cannot:#BE4536; --cannot-soft:#F5DED9;
+    --lock:#4E5F9C; --lock-soft:#E2E5F4;
+    --shadow:0 1px 2px rgba(19,32,42,.05),0 6px 20px rgba(19,32,42,.06);
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0D1417; --surface:#151F23; --surface-2:#1B282C;
+      --ink:#E7EFEF; --muted:#95A5A9; --faint:#63757A; --line:#25353A;
+      --accent:#39B6AE; --accent-soft:#123B39; --accent-ink:#7FD8D1;
+      --done:#4FB088; --done-soft:#123227;
+      --partial:#D6A63C; --partial-soft:#332811;
+      --cannot:#E0715F; --cannot-soft:#361c18;
+      --lock:#8B97D8; --lock-soft:#1c2140;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#F4F7F7; --surface:#FFFFFF; --surface-2:#EEF3F3;
+    --ink:#13202A; --muted:#59696F; --faint:#8A999E; --line:#E1E9E9;
+    --accent:#0E7C7B; --accent-soft:#DBEDEB; --accent-ink:#0A5A59;
+    --done:#2C875F; --done-soft:#DDEFE6;
+    --partial:#B5820F; --partial-soft:#F4EBD3;
+    --cannot:#BE4536; --cannot-soft:#F5DED9;
+    --lock:#4E5F9C; --lock-soft:#E2E5F4;
+    --shadow:0 1px 2px rgba(19,32,42,.05),0 6px 20px rgba(19,32,42,.06);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0D1417; --surface:#151F23; --surface-2:#1B282C;
+    --ink:#E7EFEF; --muted:#95A5A9; --faint:#63757A; --line:#25353A;
+    --accent:#39B6AE; --accent-soft:#123B39; --accent-ink:#7FD8D1;
+    --done:#4FB088; --done-soft:#123227;
+    --partial:#D6A63C; --partial-soft:#332811;
+    --cannot:#E0715F; --cannot-soft:#361c18;
+    --lock:#8B97D8; --lock-soft:#1c2140;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:clamp(28px,5vw,64px) clamp(18px,4vw,40px)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);font-weight:600}
+  h1{font-size:clamp(28px,5vw,44px);line-height:1.1;margin:.35em 0 .3em;letter-spacing:-.02em;
+    text-wrap:balance;font-weight:700}
+  h2{font-size:clamp(19px,3vw,24px);margin:0 0 4px;letter-spacing:-.01em;font-weight:680}
+  .lede{color:var(--muted);font-size:clamp(15px,2vw,17px);max-width:60ch;margin:0}
+  section{margin-top:clamp(38px,6vw,64px)}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+  .sec-head .num{font-family:var(--mono);font-size:13px;color:var(--faint);font-weight:600}
+  .sec-sub{color:var(--muted);font-size:14px;margin:2px 0 0}
+
+  /* legend */
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
+  .lg{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);font-family:var(--mono)}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .dot.done{background:var(--done)} .dot.partial{background:var(--partial)}
+  .dot.todo{background:var(--faint)} .dot.lock{background:var(--lock)}
+
+  /* pipeline */
+  .flow{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+  .step{position:relative;flex:1 1 150px;min-width:140px;background:var(--surface);
+    border:1px solid var(--line);border-radius:12px;padding:14px 14px 13px;box-shadow:var(--shadow)}
+  .step .k{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.08em}
+  .step .name{font-weight:650;font-size:15px;margin:3px 0 2px;display:flex;align-items:center;gap:7px}
+  .step .role{font-size:12.5px;color:var(--muted)}
+  .step .st{display:inline-block;margin-top:9px;font-family:var(--mono);font-size:11px;font-weight:600;
+    padding:2px 8px;border-radius:20px}
+  .st.done{background:var(--done-soft);color:var(--done)}
+  .st.partial{background:var(--partial-soft);color:var(--partial)}
+  .st.todo{background:var(--surface-2);color:var(--faint)}
+  .st.lock{background:var(--lock-soft);color:var(--lock)}
+  .step.hl{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),var(--shadow)}
+  .loopback{display:flex;align-items:center;gap:10px;margin-top:14px;font-family:var(--mono);
+    font-size:12.5px;color:var(--accent);background:var(--accent-soft);border-radius:10px;
+    padding:10px 14px}
+  .loopback b{color:var(--accent-ink)}
+
+  /* matrix cards */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 16px 15px;
+    box-shadow:var(--shadow);border-left-width:4px}
+  .card.b-done{border-left-color:var(--done)}
+  .card.b-partial{border-left-color:var(--partial)}
+  .card.b-todo{border-left-color:var(--faint)}
+  .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .card h3{margin:0;font-size:16px;font-weight:680}
+  .card .imp{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--muted);
+    white-space:nowrap;border:1px solid var(--line);border-radius:20px;padding:2px 8px;margin-top:2px}
+  .card .desc{color:var(--muted);font-size:13.5px;margin:9px 0 0}
+  .card .tag{display:inline-block;margin-top:11px;font-family:var(--mono);font-size:11px;font-weight:600;
+    padding:2px 9px;border-radius:20px}
+  .tag.done{background:var(--done-soft);color:var(--done)}
+  .tag.partial{background:var(--partial-soft);color:var(--partial)}
+  .tag.todo{background:var(--surface-2);color:var(--faint)}
+
+  /* cannot-do panel */
+  .cannot-wrap{background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    overflow:hidden;box-shadow:var(--shadow)}
+  .cannot-hd{background:var(--cannot-soft);padding:16px 20px;border-bottom:1px solid var(--line)}
+  .cannot-hd .t{font-weight:700;font-size:17px;color:var(--cannot);display:flex;align-items:center;gap:9px}
+  .cannot-hd .s{color:var(--muted);font-size:13.5px;margin:3px 0 0}
+  .limits{list-style:none;margin:0;padding:6px 0}
+  .limit{display:flex;gap:14px;padding:15px 20px;border-top:1px solid var(--line)}
+  .limit:first-child{border-top:none}
+  .limit .ic{flex:none;width:30px;height:30px;border-radius:8px;background:var(--cannot-soft);
+    color:var(--cannot);display:grid;place-items:center;font-size:15px;font-weight:700}
+  .limit .body h4{margin:0 0 3px;font-size:15px;font-weight:650}
+  .limit .body p{margin:0;color:var(--muted);font-size:13.5px}
+  .limit .body .fix{margin:6px 0 0;font-family:var(--mono);font-size:12px;color:var(--accent-ink)}
+  .limit .body .fix b{color:var(--accent)}
+
+  .foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--faint);
+    font-size:12.5px;font-family:var(--mono);line-height:1.7}
+  @media (max-width:560px){ .flow{flex-direction:column} .step{flex:1 1 auto} }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Pulse-AI · 안양 건강검진 내과 · 네이버 블로그</div>
+    <h1>마케팅 AI 에이전트<br>전체 그림과 한계</h1>
+    <p class="lede">측정(눈)과 위법 차단(브레이크)은 만들어 돌아갑니다. 아래는 전체 파이프라인에서
+    <b style="color:var(--ink)">지금 되는 것</b>, <b style="color:var(--ink)">중요하지만 남은 것</b>,
+    그리고 정직하게 <b style="color:var(--ink)">AI가 못하는 것</b>입니다.</p>
+    <div class="legend">
+      <span class="lg"><span class="dot done"></span>완성·작동</span>
+      <span class="lg"><span class="dot partial"></span>설계만(문서)</span>
+      <span class="lg"><span class="dot todo"></span>미착수</span>
+      <span class="lg"><span class="dot lock"></span>사람 필수</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <span class="num">01</span>
+      <div><h2>큰 그림 — 클로즈드 루프 한 바퀴</h2>
+      <p class="sec-sub">계획부터 발행, 측정, 평가까지 돌고 다시 계획으로. 이 한 바퀴가 스스로 도는 게 목표.</p></div>
+    </div>
+    <div class="flow">
+      <div class="step"><div class="k">STEP 1</div><div class="name">전략·계획</div>
+        <div class="role">무엇을 언제 쓸지</div><span class="st todo">미착수</span></div>
+      <div class="step"><div class="k">STEP 2</div><div class="name">키워드 발굴</div>
+        <div class="role">롱테일 지역 키워드</div><span class="st todo">미착수</span></div>
+      <div class="step"><div class="k">STEP 3</div><div class="name">콘텐츠 생성 ✍️</div>
+        <div class="role">블로그 초안 (손)</div><span class="st todo">미착수</span></div>
+      <div class="step hl"><div class="k">STEP 4</div><div class="name">컴플라이언스 🛑</div>
+        <div class="role">위법 차단 (브레이크)</div><span class="st done">완성·작동</span></div>
+      <div class="step"><div class="k">STEP 5</div><div class="name">의료인 감수</div>
+        <div class="role">사람 승인</div><span class="st lock">사람 필수</span></div>
+      <div class="step"><div class="k">STEP 6</div><div class="name">발행</div>
+        <div class="role">네이버 블로그 게시</div><span class="st todo">미착수</span></div>
+      <div class="step hl"><div class="k">STEP 7</div><div class="name">순위 측정 👁</div>
+        <div class="role">매일 체크 (눈)</div><span class="st done">완성·작동</span></div>
+      <div class="step"><div class="k">STEP 8</div><div class="name">평가 3중 루프</div>
+        <div class="role">고칠까/버릴까 판정</div><span class="st partial">설계만</span></div>
+    </div>
+    <div class="loopback">↻&nbsp; <b>루프백:</b>&nbsp; 평가 결과 → 다시 STEP 1(계획)로. 이 되먹임이 있어야 "에이전트가 스스로 도는" 상태가 됩니다.</div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="num">02</span>
+      <div><h2>중요도 × 상태 — 무엇이 급한가</h2>
+      <p class="sec-sub">중요도가 높은데 아직 안 된 것 = 다음 우선순위. 왼쪽 색 막대가 상태입니다.</p></div>
+    </div>
+    <div class="grid">
+      <div class="card b-done"><div class="top"><h3>컴플라이언스 게이트</h3><span class="imp">중요도 ★★★</span></div>
+        <p class="desc">위법 표현 차단 + 대체문구 제안. 안 지키면 병원이 처벌받는 최우선 안전장치.</p>
+        <span class="tag done">✅ 완성·작동</span></div>
+      <div class="card b-done"><div class="top"><h3>일일 순위 트래커</h3><span class="imp">중요도 ★★☆</span></div>
+        <p class="desc">매일 키워드 순위 측정·추세·알림. 루프의 눈. 공식 API 기반(크롤링 아님).</p>
+        <span class="tag done">✅ 완성·작동</span></div>
+      <div class="card b-todo"><div class="top"><h3>전환(예약전화) 측정</h3><span class="imp">중요도 ★★★</span></div>
+        <p class="desc">진짜 성과 지표. 순위가 아니라 예약으로 이어졌는지. 외부 데이터 연동 필요.</p>
+        <span class="tag todo">⚪ 미착수</span></div>
+      <div class="card b-partial"><div class="top"><h3>평가 3중 루프</h3><span class="imp">중요도 ★★☆</span></div>
+        <p class="desc">콘텐츠/채널/전략을 주기별로 판정. 설계서엔 있지만 코드로는 미구현.</p>
+        <span class="tag partial">◐ 설계만</span></div>
+      <div class="card b-todo"><div class="top"><h3>콘텐츠 생성기</h3><span class="imp">중요도 ★★☆</span></div>
+        <p class="desc">페르소나·구조 규격에 맞춰 실제 초안 작성. 게이트와 자동 연결 예정(손).</p>
+        <span class="tag todo">⚪ 미착수</span></div>
+      <div class="card b-todo"><div class="top"><h3>키워드 발굴 엔진</h3><span class="imp">중요도 ★☆☆</span></div>
+        <p class="desc">검색량·경쟁·전환의도로 롱테일 우선순위 산출. 지금은 수동 목록.</p>
+        <span class="tag todo">⚪ 미착수</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="num">03</span>
+      <div><h2>못하는 것 — AI의 한계 (정직하게)</h2>
+      <p class="sec-sub">이걸 알고 시작해야 사고가 안 납니다. 오른쪽은 "그럼 어떻게 메우나"입니다.</p></div>
+    </div>
+    <div class="cannot-wrap">
+      <div class="cannot-hd">
+        <div class="t">⛔ 이 에이전트가 스스로 할 수 없는 것</div>
+        <p class="s">자동화해도 남는 7가지. 대부분 "사람" 또는 "외부 연동"으로만 메울 수 있습니다.</p>
+      </div>
+      <ul class="limits">
+        <li class="limit"><div class="ic">1</div><div class="body">
+          <h4>정확한 실제 검색순위(SERP)</h4>
+          <p>공식 API는 실제 통합검색 순위와 근사할 뿐, 완전히 같지 않음. 지역·로그인·시점마다 달라짐.</p>
+          <p class="fix">→ 대응: <b>추세(7일 이동평균)로 판단</b>. 정확도 필요 시 유료 순위추적 SaaS로 교체.</p></div></li>
+        <li class="limit"><div class="ic">2</div><div class="body">
+          <h4>법적 최종 판단</h4>
+          <p>컴플라이언스 게이트는 1차 필터. "위법 아님"을 보증하지 못함.</p>
+          <p class="fix">→ 대응: <b>의료광고 사전심의 · 의료인 감수는 사람이 필수</b>. AI는 후보만 걸러줌.</p></div></li>
+        <li class="limit"><div class="ic">3</div><div class="body">
+          <h4>원내 실제 사진·동영상 촬영</h4>
+          <p>상위노출에 필요한 직접 촬영 이미지(6~13장)·모먼트는 AI가 못 찍음.</p>
+          <p class="fix">→ 대응: <b>병원에서 촬영·제공</b>. AI는 환자 식별정보 마스킹 검증만.</p></div></li>
+        <li class="limit"><div class="ic">4</div><div class="body">
+          <h4>진짜 체류시간·예약 전환 측정</h4>
+          <p>블로그 체류시간·전화예약 데이터는 에이전트 안에 없음. 이게 없으면 "진짜 성과"를 모름.</p>
+          <p class="fix">→ 대응: <b>네이버 애널리틱스·통화추적 연동 필요</b>(외부 데이터).</p></div></li>
+        <li class="limit"><div class="ic">5</div><div class="body">
+          <h4>인과관계 자동 증명</h4>
+          <p>"순위가 올랐다 = 우리 전략 덕분"이라고 AI 혼자 단정 못함. 계절·경쟁·네이버 업데이트가 섞임.</p>
+          <p class="fix">→ 대응: <b>A/B·홀드아웃 실험 설계</b> 없이는 "효과 있음" 판정 불가.</p></div></li>
+        <li class="limit"><div class="ic">6</div><div class="body">
+          <h4>100% 무인 자동발행</h4>
+          <p>의료 도메인은 완전 자동 발행이 위험. 오판 시 병원 책임.</p>
+          <p class="fix">→ 대응: <b>사람 승인(HITL)이 들어간 반자동이 정답</b>.</p></div></li>
+        <li class="limit"><div class="ic">7</div><div class="body">
+          <h4>네이버 알고리즘 변경 예측</h4>
+          <p>네이버가 로직을 언제 어떻게 바꿀지 미리 알 수 없음. 목적함수가 흔들릴 수 있음.</p>
+          <p class="fix">→ 대응: <b>변화점 탐지 후 사람이 재설계</b>. 예측이 아니라 대응.</p></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <p class="foot">Pulse-AI · marketing-ai-agent-design 브랜치 &nbsp;|&nbsp; ✅ 완성: 순위 트래커, 컴플라이언스 게이트
+  &nbsp;|&nbsp; ◐ 설계: 3중 평가 루프 &nbsp;|&nbsp; ⚪ 남음: 콘텐츠 생성 · 키워드 엔진 · 전환 측정
+  <br>이 도식의 한계 항목은 "못 만든 것"이 아니라 "구조적으로 사람·외부연동이 필요한 것"입니다.</p>
+</div>
