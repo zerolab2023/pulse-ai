@@ -1,0 +1,38 @@
+{
+  "blog_id": "anyang-checkup",
+  "display_name": "안양 건강검진 내과 블로그",
+  "first_page_size": 10,
+  "moving_avg_days": 7,
+  "drop_alert_days": 3,
+  "keywords": [
+    {
+      "keyword": "안양 국가건강검진 병원",
+      "post_url": "https://blog.naver.com/anyang-checkup/223000000001",
+      "published_at": "2026-07-10",
+      "tab": "blog"
+    },
+    {
+      "keyword": "인덕원 위내시경 수면",
+      "post_url": "https://blog.naver.com/anyang-checkup/223000000002",
+      "published_at": "2026-07-14",
+      "tab": "blog"
+    },
+    {
+      "keyword": "평촌 종합검진 비용 항목",
+      "post_url": "https://blog.naver.com/anyang-checkup/223000000003",
+      "published_at": "2026-07-18",
+      "tab": "blog"
+    },
+    {
+      "keyword": "안양 직장인 건강검진 토요일",
+      "post_url": "https://blog.naver.com/anyang-checkup/223000000004",
+      "published_at": "2026-07-20",
+      "tab": "blog"
+    },
+    {
+      "keyword": "범계 대장내시경 수면 비용",
+      "published_at": null,
+      "tab": "blog"
+    }
+  ]
+}

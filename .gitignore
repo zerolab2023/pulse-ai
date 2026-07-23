@@ -1,0 +1,12 @@
+# 순위 시계열 DB(운영 데이터) — 저장소에 커밋하지 않음
+*.db
+rank_history.db
+
+# 실제 워치리스트(병원별 운영 설정)는 예시만 커밋
+config/watchlist.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
