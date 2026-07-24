@@ -19,13 +19,14 @@ from datetime import date, timedelta
 
 from .analyzer import analyze
 from .config import Watchlist
-from .fetcher import MockFetcher, NaverApiFetcher, RankResult
+from .fetcher import MockFetcher, NaverApiFetcher, find_rank
 from .storage import RankRow, RankStore
 
 
 def _measure_and_store(wl: Watchlist, store: RankStore, fetcher, day: str) -> None:
     for kt in wl.keywords:
-        res: RankResult = fetcher.fetch(kt.keyword, wl.blog_id, kt.post_id)
+        items = fetcher.fetch_serp(kt.keyword)
+        res = find_rank(items, wl.blog_id, kt.post_id, kt.keyword)
         store.upsert(RankRow(day, kt.keyword, res.rank, res.found_url, res.note))
 
 
@@ -77,9 +78,10 @@ def main(argv: list[str] | None = None) -> int:
             start = date.fromisoformat(args.date) - timedelta(days=args.seed_days)
             for i in range(args.seed_days):
                 day = (start + timedelta(days=i)).isoformat()
-                _measure_and_store(wl, store, MockFetcher(day_index=i), day)
+                _measure_and_store(wl, store, MockFetcher(day_index=i, our_blog_id=wl.blog_id), day)
 
-        fetcher = MockFetcher(day_index=args.seed_days) if args.mock else NaverApiFetcher()
+        fetcher = (MockFetcher(day_index=args.seed_days, our_blog_id=wl.blog_id)
+                   if args.mock else NaverApiFetcher())
         _measure_and_store(wl, store, fetcher, args.date)
 
         print(f"=== {wl.display_name} · 일일 순위 리포트 ({args.date}) ===")
