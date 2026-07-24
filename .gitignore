@@ -13,3 +13,6 @@ venv/
 
 # 세션 임시 폴더
 scratchpad/
+
+# 캡처 산출물(사용자 PC에서 생성)
+research/shots/
