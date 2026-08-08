@@ -1,0 +1,760 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>단지매치 — 우리 단지 갈아타기</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#ffffff; --ink:#191f28; --sub:#6b7684; --line:#e5e8eb;
+    --brand:#3182f6; --brand-dark:#1b64da; --brand-soft:#e8f3ff;
+    --good:#00a05e; --good-soft:#e5f6ee; --warn:#d9730d; --warn-soft:#fdf0e3;
+    --danger:#e5484d; --radius:16px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    background:#e9edf2; color:var(--ink);
+    font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+    display:flex;justify-content:center;
+  }
+  #frame{
+    width:100%;max-width:430px;min-height:100dvh;background:var(--bg);
+    display:flex;flex-direction:column;position:relative;
+    box-shadow:0 0 40px rgba(0,0,0,.08);
+  }
+  #view{flex:1;overflow-y:auto;padding-bottom:84px}
+  /* ---------- common ---------- */
+  .page{padding:20px;display:flex;flex-direction:column;gap:16px}
+  .card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:0 1px 3px rgba(25,31,40,.04)}
+  .card h3{font-size:15px;margin-bottom:12px}
+  h1{font-size:24px;line-height:1.35;letter-spacing:-.3px}
+  h2{font-size:18px;letter-spacing:-.2px}
+  .sub{color:var(--sub);font-size:13px;line-height:1.6}
+  .btn{
+    display:block;width:100%;padding:16px;border:0;border-radius:14px;
+    background:var(--brand);color:#fff;font-size:16px;font-weight:700;cursor:pointer;
+    text-align:center;text-decoration:none;transition:transform .05s;
+    font-family:inherit;
+  }
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+  .btn.soft{background:var(--brand-soft);color:var(--brand-dark)}
+  .btn.danger-ghost{background:var(--card);color:var(--danger);border:1px solid var(--line)}
+  .btn:disabled{background:#c9d2dc;cursor:not-allowed}
+  .row{display:flex;gap:10px}
+  .row>*{flex:1}
+  .chip{
+    display:inline-block;padding:9px 14px;border-radius:999px;border:1px solid var(--line);
+    background:var(--card);font-size:13px;font-weight:600;color:var(--sub);cursor:pointer;user-select:none;
+  }
+  .chip.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand-dark)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .field{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+  .field:last-child{margin-bottom:0}
+  .field label{font-size:13px;font-weight:700;color:var(--sub)}
+  .field input,.field select{
+    padding:14px;border:1px solid var(--line);border-radius:12px;font-size:15px;background:var(--card);
+    font-family:inherit;width:100%;
+  }
+  .field input:focus,.field select:focus{outline:2px solid var(--brand);border-color:transparent}
+  .badge{display:inline-block;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:700}
+  .badge.blue{background:var(--brand-soft);color:var(--brand-dark)}
+  .badge.green{background:var(--good-soft);color:var(--good)}
+  .badge.orange{background:var(--warn-soft);color:var(--warn)}
+  .divider{height:1px;background:var(--line);margin:4px 0}
+  .money-table{width:100%;font-size:14px;border-collapse:collapse}
+  .money-table td{padding:7px 0}
+  .money-table td:last-child{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+  .money-table tr.total td{border-top:1px solid var(--line);padding-top:12px;font-size:15px}
+  .money-table .plus{color:var(--danger)} .money-table .minus{color:var(--brand)}
+  .info-dot{
+    display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;
+    border-radius:50%;background:var(--line);color:var(--sub);font-size:11px;font-weight:700;
+    cursor:pointer;vertical-align:2px;margin-left:4px;
+  }
+  /* ---------- header ---------- */
+  .appbar{
+    position:sticky;top:0;z-index:10;background:rgba(244,246,249,.92);backdrop-filter:blur(8px);
+    display:flex;align-items:center;gap:8px;padding:14px 16px;min-height:56px;
+  }
+  .appbar .back{border:0;background:none;font-size:22px;cursor:pointer;line-height:1;padding:4px;color:var(--ink)}
+  .appbar .title{font-size:17px;font-weight:800;letter-spacing:-.2px}
+  /* ---------- tabbar ---------- */
+  #tabbar{
+    position:absolute;bottom:0;left:0;right:0;height:76px;background:var(--card);
+    border-top:1px solid var(--line);display:flex;z-index:20;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  #tabbar a{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    text-decoration:none;color:#8b95a1;font-size:11px;font-weight:600;
+  }
+  #tabbar a.on{color:var(--brand)}
+  #tabbar .ico{font-size:21px;line-height:1}
+  /* ---------- landing ---------- */
+  .hero{padding:44px 24px 28px;background:linear-gradient(160deg,#eaf3ff 0%,#f4f6f9 70%)}
+  .hero .logo{font-size:14px;font-weight:900;color:var(--brand);letter-spacing:-.2px;margin-bottom:18px}
+  .demand{display:flex;flex-direction:column;gap:8px}
+  .demand-row{
+    display:flex;justify-content:space-between;align-items:center;background:var(--card);
+    border-radius:12px;padding:13px 16px;font-size:14px;font-weight:600;
+  }
+  .demand-row b{color:var(--brand);font-variant-numeric:tabular-nums}
+  .howto{display:flex;flex-direction:column;gap:12px}
+  .howto .step{display:flex;gap:12px;align-items:flex-start}
+  .howto .n{
+    flex:0 0 26px;height:26px;border-radius:50%;background:var(--brand-soft);color:var(--brand-dark);
+    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;
+  }
+  .howto p{font-size:14px;line-height:1.55}
+  .howto p b{display:block}
+  /* ---------- stepper ---------- */
+  .steps{display:flex;gap:6px;margin-bottom:20px}
+  .steps i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+  .steps i.on{background:var(--brand)}
+  .spinner{
+    width:44px;height:44px;border-radius:50%;border:4px solid var(--brand-soft);
+    border-top-color:var(--brand);animation:spin 1s linear infinite;margin:0 auto;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .check-big{
+    width:64px;height:64px;border-radius:50%;background:var(--good-soft);color:var(--good);
+    display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto;
+  }
+  /* ---------- gauge ---------- */
+  .gauge{background:var(--line);height:8px;border-radius:4px;overflow:hidden}
+  .gauge>i{display:block;height:100%;background:var(--brand);border-radius:4px;transition:width .4s}
+  /* ---------- match ---------- */
+  .countdown{
+    display:flex;align-items:center;justify-content:center;gap:8px;background:#fff4f4;
+    border:1px solid #ffe0e0;color:var(--danger);border-radius:12px;padding:12px;
+    font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;
+  }
+  .photo{
+    aspect-ratio:4/3;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:14px;letter-spacing:-.2px;
+    background:linear-gradient(135deg,#8fb8ff,#3d6fd8);
+  }
+  .photo.small{aspect-ratio:1/1;font-size:11px;border-radius:10px}
+  .score-pill{
+    display:inline-flex;align-items:center;gap:4px;background:var(--good-soft);color:var(--good);
+    font-weight:800;border-radius:999px;padding:6px 12px;font-size:14px;cursor:pointer;
+  }
+  .score-detail{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+  .score-detail .bar-row{display:grid;grid-template-columns:64px 1fr 34px;gap:10px;align-items:center;font-size:12px;color:var(--sub)}
+  .bar-row .gauge{height:6px}
+  /* timeline */
+  .timeline{display:flex;flex-direction:column}
+  .tl{display:flex;gap:14px;position:relative;padding-bottom:22px}
+  .tl:last-child{padding-bottom:0}
+  .tl::before{content:"";position:absolute;left:11px;top:26px;bottom:0;width:2px;background:var(--line)}
+  .tl:last-child::before{display:none}
+  .tl .dot{
+    flex:0 0 24px;height:24px;border-radius:50%;background:var(--card);border:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:11px;z-index:1;
+  }
+  .tl.done .dot{background:var(--good);border-color:var(--good);color:#fff}
+  .tl.now .dot{border-color:var(--brand);background:var(--brand-soft)}
+  .tl .t{font-size:14px;font-weight:700}
+  .tl.now .t{color:var(--brand-dark)}
+  .tl .d{font-size:12px;color:var(--sub);margin-top:2px}
+  /* misc */
+  .list-item{
+    display:flex;justify-content:space-between;align-items:center;padding:16px 0;
+    border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink);
+  }
+  .list-item:last-child{border-bottom:0}
+  .noti{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .noti:last-child{border-bottom:0}
+  .noti .ic{flex:0 0 38px;height:38px;border-radius:12px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;font-size:17px}
+  .noti .b{font-size:14px;font-weight:600;line-height:1.45}
+  .noti .d{font-size:12px;color:var(--sub);margin-top:2px}
+  .tabs{display:flex;background:var(--line);border-radius:12px;padding:4px}
+  .tabs button{
+    flex:1;padding:10px;border:0;border-radius:9px;background:none;font-size:13px;font-weight:700;
+    color:var(--sub);cursor:pointer;font-family:inherit;
+  }
+  .tabs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .weights li{
+    display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:14px;font-weight:600;list-style:none;
+  }
+  .weights .rank{color:var(--brand);font-weight:800;width:18px}
+  .weights .mv{margin-left:auto;display:flex;gap:6px}
+  .weights .mv button{border:1px solid var(--line);background:var(--card);border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:13px}
+  .toast{
+    position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
+    background:rgba(25,31,40,.92);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;
+    z-index:99;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;
+  }
+  .toast.show{opacity:1}
+  /* demo switcher */
+  #demo{
+    position:absolute;top:8px;right:8px;z-index:50;font-size:11px;
+  }
+  #demo select{
+    font-size:11px;padding:4px 6px;border-radius:8px;border:1px solid var(--line);
+    background:rgba(255,255,255,.9);color:var(--sub);font-family:inherit;
+  }
+  .empty{padding:48px 0;text-align:center;color:var(--sub);font-size:14px}
+  .banner{
+    display:flex;gap:10px;align-items:center;background:var(--warn-soft);color:var(--warn);
+    border-radius:12px;padding:12px 14px;font-size:13px;font-weight:600;
+  }
+</style>
+
+<div id="frame">
+  <div id="demo" title="프로토타입 데모용 상태 전환"></div>
+  <div id="view"></div>
+  <nav id="tabbar"></nav>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* =====================================================================
+   단지매치 — P0 클릭 프로토타입 (의존성 0)
+   추후 Next.js 포팅 전제: 화면/상태 구조는 docs/07 기획서와 1:1 대응
+===================================================================== */
+
+/* ---------- mock data ---------- */
+const COMPLEX = {
+  name: "한강푸른마을", dongs: [101,102,103,104,105,106,107],
+  types: ["59A","59B","84A","84B","109A"],
+  demand: [
+    {from:"84타입", to:"109타입", n:12},
+    {from:"59타입", to:"84타입",  n:8},
+    {from:"109타입", to:"84타입", n:5},
+  ],
+};
+const CYCLE = {  // 3자 순환 제안 목데이터
+  id: 1, size: 3,
+  me:   {label:"나",           home:"101동 59A · 중층",  give:"59A"},
+  recv: {dong:"103동", floorBand:"고층", type:"84A", dir:"남향",
+         interior:"올수리 ('24)", extended:true, price:11.2e8, score:92,
+         scoreDetail:[["위치",.95],["컨디션",.98],["가격",.82],["일정",.90]]},
+  third:{label:"105동 중층 109A"},
+  myAsk: 9.5e8,
+  window:{from:"2026.10.15", to:"2026.11.30"},
+};
+const fmt = n => {
+  const eok = Math.floor(n/1e8), man = Math.round((n%1e8)/1e4);
+  return (eok? eok+"억":"") + (man? " "+man.toLocaleString()+"만":"") + "원";
+};
+
+/* ---------- store (localStorage) ---------- */
+const S = {
+  get(){ try{return JSON.parse(localStorage.getItem("djm")||"{}")}catch{return{}} },
+  set(p){ localStorage.setItem("djm", JSON.stringify({...S.get(), ...p})); },
+};
+const defaults = {
+  authed:false, dong:"", ho:"",
+  photos:0, ask:"", moveFrom:"", moveTo:"", interior:"", occupancy:"",
+  wDongs:[], types:[], budget:"", weights:["위치","컨디션","가격","일정"],
+  homeState:"auto",           // 데모 스위처: auto | incomplete | waiting | proposed | dealing
+  matchResp:"",               // "" | accepted | rejected
+  deadline:0,
+};
+const st = () => ({...defaults, ...S.get()});
+
+function completeness(){
+  const s = st();
+  const items = [
+    ["사진 5장", s.photos>=5], ["희망 매도가", !!s.ask],
+    ["이사 가능 기간", !!(s.moveFrom&&s.moveTo)], ["인테리어 상태", !!s.interior],
+    ["점유 상태", !!s.occupancy], ["매수 희망 조건", s.types.length>0 && !!s.budget],
+  ];
+  const done = items.filter(i=>i[1]).length;
+  return {pct: Math.round(done/items.length*100), missing: items.filter(i=>!i[1]).map(i=>i[0])};
+}
+function homeState(){
+  const s = st();
+  if(s.homeState!=="auto") return s.homeState;
+  if(!s.authed) return "guest";
+  if(completeness().pct<80) return "incomplete";
+  if(s.matchResp==="accepted") return "dealing";
+  return "proposed"; // 프로토타입: 완성되면 바로 제안 도착 시나리오
+}
+
+/* ---------- router ---------- */
+const routes = {};
+function go(h){ location.hash = h; }
+window.addEventListener("hashchange", render);
+function render(){
+  const hash = location.hash.replace(/^#/,"") || "/";
+  const [path] = hash.split("?");
+  const seg = path.split("/").filter(Boolean);
+  let view = routes["/"+ (seg[0]||"")];
+  if(seg[0]==="profile") view = routes["/profile/"+seg[1]];
+  if(seg[0]==="matches") view = () => Match(seg[1]);
+  if(seg[0]==="deal")    view = () => Deal(seg[1]);
+  document.getElementById("view").innerHTML = (view||routes["/"])();
+  document.getElementById("view").scrollTop = 0;
+  Tabbar(path); Demo();
+  (postRender[path]||postRender[seg[0]]||(()=>{}))();
+}
+const postRender = {};
+
+/* ---------- shared ui ---------- */
+const appbar = (title, back) => `
+  <div class="appbar">
+    ${back?`<button class="back" onclick="history.back()">‹</button>`:""}
+    <span class="title">${title}</span>
+  </div>`;
+function Tabbar(path){
+  const authed = st().authed;
+  const tabs = [
+    ["#/home","🏠","홈"],["#/matches/1","💙","매칭"],["#/profile/my-home","🏢","내 집"],
+    ["#/calculator","🧮","계산기"],["#/my","👤","마이"],
+  ];
+  document.getElementById("tabbar").innerHTML = authed ? tabs.map(([h,i,l])=>
+    `<a href="${h}" class="${('#'+path).startsWith(h.split('/').slice(0,2).join('/'))?'on':''}">
+       <span class="ico">${i}</span>${l}</a>`).join("") : "";
+  document.getElementById("tabbar").style.display = authed ? "flex" : "none";
+}
+function Demo(){
+  const s = st();
+  document.getElementById("demo").innerHTML = s.authed ? `
+    <select onchange="S.set({homeState:this.value});render()">
+      ${["auto","incomplete","waiting","proposed","dealing"].map(v=>
+        `<option ${s.homeState===v?"selected":""} value="${v}">demo:${v}</option>`).join("")}
+    </select>` : "";
+}
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 1800);
+}
+
+/* =====================================================================
+   화면들
+===================================================================== */
+
+/* ----- 랜딩 ----- */
+routes["/"] = () => st().authed ? (go("#/home"),"") : `
+  <div class="hero">
+    <div class="logo">단지매치</div>
+    <h1>${COMPLEX.name} 갈아타기,<br>기다리지 말고 <span style="color:var(--brand)">맞바꾸세요</span></h1>
+    <p class="sub" style="margin-top:10px">같은 단지 소유주끼리 순환거래로<br>매도와 매수를 한 번에, 같은 날.</p>
+  </div>
+  <div class="page">
+    <div class="card">
+      <h3>지금 우리 단지에서</h3>
+      <div class="demand">
+        ${COMPLEX.demand.map(d=>`
+          <div class="demand-row"><span>${d.from} → ${d.to}</span><b>대기 ${d.n}명</b></div>`).join("")}
+      </div>
+    </div>
+    <a class="btn" href="#/onboarding">내 매칭 가능성 확인하기</a>
+    <div class="card howto">
+      <h3>순환거래가 뭔가요?</h3>
+      <div class="step"><span class="n">1</span><p><b>원하는 집을 등록하면</b>내 집을 원하는 이웃과 연결 고리를 찾아요.</p></div>
+      <div class="step"><span class="n">2</span><p><b>사이클이 완성되면</b>A→B→C→A처럼 서로의 집을 동시에 사고팔아요.</p></div>
+      <div class="step"><span class="n">3</span><p><b>같은 날 잔금·이사</b>일시적 2주택 걱정 없이 갈아타기가 끝나요.</p></div>
+    </div>
+    <a class="btn ghost" href="#/calculator">세금 계산기 무료로 써보기</a>
+    <p class="sub" style="text-align:center;padding-bottom:20px">중개는 협력 공인중개사가 수행합니다</p>
+  </div>`;
+
+/* ----- 온보딩 ----- */
+routes["/onboarding"] = () => {
+  const s = st(); const step = s.obStep||1;
+  const bar = `<div class="steps">${[1,2,3,4].map(i=>`<i class="${i<=step?'on':''}"></i>`).join("")}</div>`;
+  const bodies = {
+    1: `<h2>휴대폰 본인인증</h2>
+        <p class="sub" style="margin:8px 0 24px">소유주 확인을 위해 본인 명의 휴대폰으로 인증해요.</p>
+        <div class="field"><label>이름</label><input id="ob-name" placeholder="홍길동" value="${s.name||""}"></div>
+        <div class="field"><label>휴대폰 번호</label><input id="ob-phone" inputmode="numeric" placeholder="010-0000-0000"></div>
+        <button class="btn" onclick="obNext(1)">인증 요청 (프로토타입: 바로 통과)</button>`,
+    2: `<h2>어느 집 소유주신가요?</h2>
+        <p class="sub" style="margin:8px 0 24px">${COMPLEX.name} 기준으로 확인해요.</p>
+        <div class="field"><label>동</label>
+          <select id="ob-dong"><option value="">선택</option>
+            ${COMPLEX.dongs.map(d=>`<option ${s.dong==d?"selected":""}>${d}</option>`).join("")}
+          </select></div>
+        <div class="field"><label>호수</label><input id="ob-ho" inputmode="numeric" placeholder="예: 1203" value="${s.ho||""}"></div>
+        <button class="btn" onclick="obNext(2)">다음</button>`,
+    3: `<div style="text-align:center;padding:40px 0">
+          <div class="spinner"></div>
+          <h2 style="margin-top:24px">등기부를 확인하고 있어요</h2>
+          <p class="sub" style="margin-top:8px">${s.dong}동 ${s.ho}호의 소유자 정보와<br>본인인증 정보를 대조합니다 (수 초 소요)</p>
+        </div>`,
+    4: `<div style="text-align:center;padding:24px 0">
+          <div class="check-big">✓</div>
+          <h2 style="margin-top:20px">소유주 인증 완료!</h2>
+          <p class="sub" style="margin:10px 0 28px">${COMPLEX.name} ${s.dong}동 ${s.ho}호<br>이제 프로필을 등록하면 매칭이 시작돼요.</p>
+          <button class="btn" onclick="S.set({authed:true});go('#/profile/my-home')">내 집 프로필 등록하기</button>
+          <button class="btn ghost" style="margin-top:10px" onclick="S.set({authed:true});go('#/home')">나중에 하기</button>
+        </div>`,
+  };
+  return appbar("가입하기", true) + `<div class="page"><div>${bar}</div><div class="card">${bodies[step]}</div>
+    ${step===2?`<p class="sub">공동명의이거나 자동 확인이 안 되면 서류 업로드 후 1영업일 내 수동 심사로 전환돼요.</p>`:""}</div>`;
+};
+function obNext(from){
+  if(from===1){
+    const name = document.getElementById("ob-name").value.trim();
+    if(!name) return toast("이름을 입력해 주세요");
+    S.set({name, obStep:2});
+  }
+  if(from===2){
+    const dong = document.getElementById("ob-dong").value, ho = document.getElementById("ob-ho").value.trim();
+    if(!dong||!ho) return toast("동과 호수를 입력해 주세요");
+    S.set({dong, ho, obStep:3});
+    setTimeout(()=>{ S.set({obStep:4}); render(); }, 1800); // 등기부 조회 시뮬레이션
+  }
+  render();
+}
+
+/* ----- 홈 ----- */
+routes["/home"] = () => {
+  const s = st(); const hs = homeState(); const c = completeness();
+  if(hs==="guest") return (go("#/"),"");
+  const head = `<div class="appbar"><span class="title">단지매치</span>
+    <a href="#/notifications" style="margin-left:auto;font-size:20px;text-decoration:none">🔔</a></div>`;
+  const pending = s.pendingReview? `<div class="banner">⏳ 소유주 수동 심사 중 · 예상 1영업일</div>`:"";
+
+  if(hs==="incomplete") return head+`<div class="page">${pending}
+    <div class="card">
+      <h3>매칭 시작까지 ${c.missing.length}항목 남았어요</h3>
+      <div class="gauge" style="margin:8px 0 12px"><i style="width:${c.pct}%"></i></div>
+      <p class="sub">완성률 ${c.pct}% — 80% 이상이면 매칭 풀에 들어가요.</p>
+      <div class="chips" style="margin-top:12px">${c.missing.map(m=>`<span class="chip">${m}</span>`).join("")}</div>
+    </div>
+    <a class="btn" href="#/profile/my-home">이어서 등록하기</a>
+    <a class="btn ghost" href="#/profile/wishlist">매수 희망 조건 입력</a></div>`;
+
+  if(hs==="waiting") return head+`<div class="page">${pending}
+    <div class="card" style="text-align:center;padding:36px 20px">
+      <div class="spinner"></div>
+      <h2 style="margin-top:20px">매칭 상대를 찾고 있어요</h2>
+      <p class="sub" style="margin-top:8px">조건이 맞는 잠재 상대 <b style="color:var(--brand)">7명</b>과<br>사이클을 탐색 중이에요. 매일 밤 갱신됩니다.</p>
+    </div>
+    <div class="card">
+      <h3>조건을 넓히면 더 빨라져요</h3>
+      <div class="list-item"><span class="sub">층 범위를 '중층 이상'으로</span><span class="badge blue">+3명</span></div>
+      <div class="list-item"><span class="sub">104동도 포함하면</span><span class="badge blue">+2명</span></div>
+      <a class="btn soft" style="margin-top:10px" href="#/profile/wishlist">조건 수정하기</a>
+    </div></div>`;
+
+  if(hs==="dealing") return head+`<div class="page">
+    <div class="card">
+      <span class="badge green">거래 진행 중</span>
+      <h2 style="margin:10px 0 4px">3자 순환거래</h2>
+      <p class="sub">다음 할 일: <b>10/2까지 인감증명서 준비</b></p>
+      <a class="btn" style="margin-top:14px" href="#/deal/1">딜 룸 열기</a>
+    </div></div>`;
+
+  /* proposed */
+  return head+`<div class="page">${pending}
+    <div class="card" style="border:2px solid var(--brand)">
+      <span class="badge blue">새 매칭 제안</span>
+      <h2 style="margin:10px 0 4px">3자 순환 · ${CYCLE.recv.dong} ${CYCLE.recv.floorBand} ${CYCLE.recv.type}</h2>
+      <p class="sub">매칭 점수 ${CYCLE.recv.score}점 · 응답 기한 <b id="mini-cd" style="color:var(--danger)">47:12:09</b></p>
+      <a class="btn" style="margin-top:14px" href="#/matches/1">제안 확인하기</a>
+    </div>
+    <div class="card">
+      <h3>내 프로필</h3>
+      <div class="list-item"><span class="sub">완성률</span><b>${c.pct}%</b></div>
+      <div class="list-item"><span class="sub">내 집</span><b>${s.dong||101}동 ${s.ho||1203}호</b></div>
+    </div></div>`;
+};
+
+/* ----- 내 집 프로필 ----- */
+routes["/profile/my-home"] = () => {
+  const s = st(); const c = completeness();
+  return appbar("내 집 프로필", true)+`<div class="page">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <h3>완성률 ${c.pct}%</h3><span class="sub" style="font-size:12px">80% 이상이면 매칭 시작</span>
+      </div>
+      <div class="gauge"><i style="width:${c.pct}%"></i></div>
+    </div>
+    <div class="card">
+      <h3>사진 <span class="sub" style="font-weight:400">최소 5장 · 현재 ${s.photos}장</span></h3>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        ${[..."거실,주방,안방,욕실,뷰".split(",")].map((label,i)=>`
+          <div class="photo small" style="${i<s.photos?'':'background:var(--line);color:var(--sub)'}"
+               onclick="S.set({photos:${i+1}});render()">${i<s.photos?label:'+ '+label}</div>`).join("")}
+      </div>
+      <p class="sub" style="margin-top:8px">프로토타입: 칸을 탭하면 업로드된 것으로 처리됩니다. 원본은 매칭 전 블러 처리돼요.</p>
+    </div>
+    <div class="card">
+      <div class="field"><label>희망 매도가</label>
+        <input id="f-ask" inputmode="numeric" placeholder="예: 9.5 (억)" value="${s.ask}"></div>
+      <div class="row">
+        <div class="field"><label>이사 가능 시작</label><input id="f-from" type="month" value="${s.moveFrom}"></div>
+        <div class="field"><label>이사 가능 끝</label><input id="f-to" type="month" value="${s.moveTo}"></div>
+      </div>
+      <div class="field"><label>인테리어 상태</label>
+        <div class="chips" id="f-interior">
+          ${["올수리","부분수리","기본","수리 필요"].map(v=>
+            `<span class="chip ${s.interior===v?'on':''}" onclick="S.set({interior:'${v}'});render()">${v}</span>`).join("")}
+        </div></div>
+      <div class="field"><label>점유 상태</label>
+        <div class="chips">
+          ${["자가 거주","전세","월세","공실"].map(v=>
+            `<span class="chip ${s.occupancy===v?'on':''}" onclick="S.set({occupancy:'${v}'});render()">${v}</span>`).join("")}
+        </div></div>
+      <button class="btn" onclick="saveMyHome()">저장</button>
+    </div></div>`;
+};
+function saveMyHome(){
+  S.set({
+    ask: document.getElementById("f-ask").value.trim(),
+    moveFrom: document.getElementById("f-from").value,
+    moveTo: document.getElementById("f-to").value,
+  });
+  toast("저장했어요"); render();
+}
+
+/* ----- 매수 희망 조건 ----- */
+routes["/profile/wishlist"] = () => {
+  const s = st();
+  return appbar("매수 희망 조건", true)+`<div class="page">
+    <div class="card">
+      <div class="field"><label>희망 동 (복수 선택)</label>
+        <div class="chips">
+          ${COMPLEX.dongs.map(d=>`<span class="chip ${s.wDongs.includes(d)?'on':''}" onclick="tgl('wDongs',${d})">${d}동</span>`).join("")}
+        </div></div>
+      <div class="field"><label>희망 타입</label>
+        <div class="chips">
+          ${COMPLEX.types.map(t=>`<span class="chip ${s.types.includes(t)?'on':''}" onclick="tgl('types','${t}')">${t}</span>`).join("")}
+        </div></div>
+      <div class="field"><label>예산 상한</label>
+        <input id="w-budget" inputmode="numeric" placeholder="예: 12 (억)" value="${s.budget}"
+               onchange="S.set({budget:this.value});render()"></div>
+    </div>
+    <div class="card">
+      <h3>무엇이 더 중요하세요?</h3>
+      <p class="sub" style="margin-bottom:12px">순서가 매칭 점수 계산에 그대로 반영돼요.</p>
+      <ul class="weights">
+        ${s.weights.map((w,i)=>`
+          <li><span class="rank">${i+1}</span>${w}
+            <span class="mv">
+              <button onclick="mvW(${i},-1)" ${i===0?"disabled":""}>↑</button>
+              <button onclick="mvW(${i},1)" ${i===s.weights.length-1?"disabled":""}>↓</button>
+            </span></li>`).join("")}
+      </ul>
+    </div>
+    <div class="card" style="background:var(--brand-soft);box-shadow:none">
+      <b style="color:var(--brand-dark)">이 조건과 맞는 잠재 상대 ${3+(s.wDongs.length||1)+s.types.length}명</b>
+      <p class="sub" style="margin-top:4px">실명과 호수는 매칭 확정 전까지 공개되지 않아요.</p>
+    </div>
+    <button class="btn" onclick="toast('저장했어요');go('#/home')">저장하고 매칭 시작</button></div>`;
+};
+function tgl(key, v){
+  const s = st(); const arr = [...s[key]];
+  const i = arr.indexOf(v); i>=0 ? arr.splice(i,1) : arr.push(v);
+  S.set({[key]:arr}); render();
+}
+function mvW(i,d){
+  const w = [...st().weights];
+  [w[i],w[i+d]] = [w[i+d],w[i]];
+  S.set({weights:w}); render();
+}
+
+/* ----- 매칭 제안 상세 ----- */
+function cycleSVG(){
+  // 3노드 고정 레이아웃: 나(하단) → 받는 집(우상단) → 제3자(좌상단) → 나
+  return `
+  <svg viewBox="0 0 320 200" style="width:100%">
+    <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#3182f6"/></marker></defs>
+    <g fill="none" stroke="#3182f6" stroke-width="2.5" marker-end="url(#ar)" opacity=".85">
+      <path d="M 190 158 Q 268 130 242 62"/>
+      <path d="M 205 40 Q 160 18 115 40"/>
+      <path d="M 78 62 Q 52 130 130 158"/>
+    </g>
+    <g text-anchor="middle" font-size="12" font-weight="700">
+      <circle cx="160" cy="165" r="26" fill="#3182f6"/>
+      <text x="160" y="170" fill="#fff">나</text>
+      <circle cx="240" cy="48" r="26" fill="#e8f3ff" stroke="#3182f6" stroke-width="2"/>
+      <text x="240" y="44" fill="#1b64da">103동</text><text x="240" y="58" fill="#1b64da" font-size="10">고층 84A</text>
+      <circle cx="80" cy="48" r="26" fill="#fff" stroke="#e5e8eb" stroke-width="2"/>
+      <text x="80" y="44" fill="#6b7684">105동</text><text x="80" y="58" fill="#6b7684" font-size="10">중층 109A</text>
+    </g>
+  </svg>`;
+}
+function Match(id){
+  const s = st();
+  if(s.matchResp==="accepted") return MatchAccepted();
+  if(s.matchResp==="rejected") return appbar("매칭",true)+`<div class="page"><div class="empty">
+    거절한 제안이에요.<br>다음 배치에서 새 사이클을 찾아드릴게요.</div>
+    <button class="btn ghost" onclick="S.set({matchResp:''});render()">프로토타입: 제안 되살리기</button></div>`;
+  const r = CYCLE.recv;
+  const acqTax = Math.round(r.price*0.033);
+  return appbar("매칭 제안", true)+`<div class="page">
+    <div class="countdown">⏱ 응답까지 <span id="cd">--:--:--</span></div>
+    <div class="card">
+      <h3>3자 순환거래</h3>
+      ${cycleSVG()}
+      <p class="sub" style="text-align:center">화살표 방향으로 집을 사요 · 상대 호수는 확정 전 비공개</p>
+    </div>
+    <div class="card">
+      <h3>내가 가게 될 집</h3>
+      <div class="photo">사진 (매칭 제안으로 블러 해제)</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+        <div><b style="font-size:17px">${r.dong} ${r.floorBand} · ${r.type}</b>
+          <p class="sub">${r.dir} · ${r.interior} · 확장</p></div>
+        <span class="score-pill" onclick="document.getElementById('sd').style.display=document.getElementById('sd').style.display==='none'?'block':'none'">
+          ${r.score}점 ⓘ</span>
+      </div>
+      <div id="sd" class="score-detail" style="display:none">
+        ${r.scoreDetail.map(([k,v])=>`
+          <div class="bar-row"><span>${k}</span><span class="gauge"><i style="width:${v*100}%"></i></span><b>${Math.round(v*100)}</b></div>`).join("")}
+        <p class="sub">내가 설정한 우선순위(${st().weights.join(" > ")}) 기준으로 계산돼요.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>예상 정산</h3>
+      <table class="money-table">
+        <tr><td>내 매도가</td><td>${fmt(CYCLE.myAsk)}</td></tr>
+        <tr><td>매수가</td><td>${fmt(r.price)}</td></tr>
+        <tr class="total"><td>차액 (내가 준비)</td><td class="plus">+${fmt(r.price-CYCLE.myAsk)}</td></tr>
+        <tr><td>예상 취득세 <span class="info-dot" onclick="toast('모의 계산이에요. 세무사 확인 필요')">?</span></td><td>~${fmt(acqTax)}</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>이사 가능 교집합</h3>
+      <b>${CYCLE.window.from} ~ ${CYCLE.window.to}</b>
+      <p class="sub" style="margin-top:4px">참여자 전원이 이 기간 안에서 같은 날 이사해요.</p>
+    </div>
+    <p class="sub">수락은 가계약 의사 표시이며 아직 법적 구속력이 없어요. 전원 수락 시 협력 중개사와 본계약을 진행합니다.</p>
+    <div class="row">
+      <button class="btn danger-ghost" onclick="rejectMatch()">거절</button>
+      <button class="btn" onclick="S.set({matchResp:'accepted'});render()">수락하기</button>
+    </div></div>`;
+}
+function MatchAccepted(){
+  return appbar("매칭", true)+`<div class="page">
+    <div class="card" style="text-align:center;padding:36px 20px">
+      <div class="check-big">✓</div>
+      <h2 style="margin-top:18px">수락 완료!</h2>
+      <p class="sub" style="margin-top:8px">전원 수락하면 바로 알려드릴게요.<br>다른 참여자의 응답 현황은 공개되지 않아요.</p>
+    </div>
+    <a class="btn" href="#/deal/1">프로토타입: 전원 수락됨 → 딜 룸 가기</a>
+    <button class="btn ghost" onclick="S.set({matchResp:''});render()">프로토타입: 응답 초기화</button></div>`;
+}
+function rejectMatch(){
+  const reason = prompt("거절 사유를 알려주시면 다음 매칭이 좋아져요\n(가격/컨디션/일정/기타)");
+  S.set({matchResp:"rejected", rejectReason:reason||""}); render();
+}
+postRender["matches"] = () => {
+  let dl = st().deadline;
+  if(!dl || dl < Date.now()){ dl = Date.now()+47*3600e3+12*60e3+9e3; S.set({deadline:dl}); }
+  const el = document.getElementById("cd"); if(!el) return;
+  const tick = () => {
+    const el2 = document.getElementById("cd"); if(!el2) return clearInterval(iv);
+    let ms = Math.max(0, st().deadline-Date.now());
+    const h = String(Math.floor(ms/3600e3)).padStart(2,"0"),
+          m = String(Math.floor(ms%3600e3/60e3)).padStart(2,"0"),
+          sec = String(Math.floor(ms%60e3/1e3)).padStart(2,"0");
+    el2.textContent = `${h}:${m}:${sec}`;
+  };
+  tick(); const iv = setInterval(tick, 1000);
+};
+
+/* ----- 딜 룸 ----- */
+function Deal(){
+  const steps = [
+    ["가계약","전원 수락 완료 · 9/12", "done"],
+    ["본계약","협력 중개사무소에서 · 9/20 14:00", "done"],
+    ["잔금·등기","법무법인 동시 실행 · 10/15", "now"],
+    ["이사","연쇄 이사 시간표 확정 예정", ""],
+  ];
+  return appbar("딜 룸 · 3자 순환거래", true)+`<div class="page">
+    <div class="card">
+      <h3>진행 상황</h3>
+      <div class="timeline">
+        ${steps.map(([t,d,cls])=>`
+          <div class="tl ${cls}"><span class="dot">${cls==="done"?"✓":""}</span>
+            <div><div class="t">${t}</div><div class="d">${d}</div></div></div>`).join("")}
+      </div>
+    </div>
+    <div class="card">
+      <h3>다음 할 일</h3>
+      <div class="list-item"><span>10/2까지 인감증명서 준비</span><span class="badge orange">D-2</span></div>
+      <div class="list-item"><span>주민등록초본 제출</span><span class="badge green">완료</span></div>
+    </div>
+    <div class="card">
+      <h3>참여자 <span class="sub" style="font-weight:400">전원 동의로 공개됨</span></h3>
+      <div class="list-item"><span>나 · 101동</span><span class="sub">59A 매도 → 84A 매수</span></div>
+      <div class="list-item"><span>김OO · 103동</span><span class="sub">84A 매도 → 109A 매수</span></div>
+      <div class="list-item"><span>박OO · 105동</span><span class="sub">109A 매도 → 59A 매수</span></div>
+    </div>
+    <a class="btn ghost" href="#" onclick="toast('카카오 채널로 연결 (프로토타입)');return false">운영팀에 문의하기</a></div>`;
+}
+
+/* ----- 세금 계산기 ----- */
+routes["/calculator"] = () => {
+  const tab = st().calcTab||"acq";
+  return appbar("세금 계산기", st().authed)+`<div class="page">
+    <div class="tabs">
+      ${[["acq","취득세"],["cap","양도세"],["hold","보유세"]].map(([k,l])=>
+        `<button class="${tab===k?'on':''}" onclick="S.set({calcTab:'${k}'});render()">${l}</button>`).join("")}
+    </div>
+    <div class="card">
+      ${tab==="acq"?`
+        <div class="field"><label>취득가액 (억)</label><input id="c-price" inputmode="decimal" placeholder="예: 11.2" value="${st().cPrice||""}"></div>
+        <div class="field"><label>보유 주택 수 (취득 후)</label>
+          <div class="chips" id="c-cnt">
+            ${["1주택","2주택","3주택 이상"].map((v,i)=>`<span class="chip ${(st().cCnt||0)==i?'on':''}" onclick="S.set({cCnt:${i}});render()">${v}</span>`).join("")}
+          </div></div>
+        <button class="btn" onclick="calcAcq()">계산하기</button>
+        <div id="c-result">${st().cResult||""}</div>
+      `:`<div class="empty">프로토타입에는 취득세만 구현했어요.<br>양도세·보유세는 같은 폼 패턴으로 확장됩니다.</div>`}
+    </div>
+    <p class="sub">본 계산은 모의계산으로 법적 효력이 없어요. 실제 신고 전 세무 전문가 확인이 필요합니다.</p>
+    ${st().authed?"":`<a class="btn" href="#/onboarding">우리 단지에서 갈아탈 상대 찾기</a>`}</div>`;
+};
+function calcAcq(){
+  const p = parseFloat(document.getElementById("c-price").value)*1e8;
+  if(!p) return toast("취득가액을 입력해 주세요");
+  const cnt = st().cCnt||0;
+  let rate;
+  if(cnt>=2) rate = .12;
+  else if(cnt===1) rate = .08;
+  else if(p<=6e8) rate = .01;
+  else if(p<=9e8) rate = (p/1e8*2/3-3)/100;
+  else rate = .03;
+  const tax = p*rate, extra = p*.001+p*(rate===.01?.001:.003)*0; // 지방교육세 간략화
+  S.set({cPrice:p/1e8, cResult:`
+    <div class="divider" style="margin:16px 0"></div>
+    <table class="money-table">
+      <tr><td>적용 세율</td><td>${(rate*100).toFixed(2)}%</td></tr>
+      <tr><td>취득세</td><td>${fmt(Math.round(tax))}</td></tr>
+      <tr><td>지방교육세 (약)</td><td>${fmt(Math.round(p*.001))}</td></tr>
+      <tr class="total"><td>합계 (약)</td><td class="plus">${fmt(Math.round(tax+p*.001))}</td></tr>
+    </table>`});
+  render();
+}
+
+/* ----- 알림 / 마이 ----- */
+routes["/notifications"] = () => appbar("알림", true)+`<div class="page"><div class="card">
+  <div class="noti"><span class="ic">💙</span><div>
+    <div class="b">새 매칭 제안이 도착했어요 — 3자 순환 · 103동 고층 84A</div>
+    <div class="d">오늘 · <a href="#/matches/1">확인하기</a></div></div></div>
+  <div class="noti"><span class="ic">✓</span><div>
+    <div class="b">소유주 인증이 완료됐어요</div><div class="d">어제</div></div></div>
+  <div class="noti"><span class="ic">📄</span><div>
+    <div class="b">프로필 완성까지 2항목 남았어요</div><div class="d">2일 전</div></div></div>
+</div></div>`;
+
+routes["/my"] = () => {
+  const s = st(); const c = completeness();
+  return appbar("마이", false)+`<div class="page">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:52px;height:52px;border-radius:50%;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;font-size:24px">🏠</div>
+        <div><b style="font-size:16px">${s.name||"회원"}님</b>
+          <p class="sub">${COMPLEX.name} ${s.dong||"—"}동 ${s.ho||"—"}호</p></div>
+        <span class="badge green" style="margin-left:auto">인증 완료</span>
+      </div>
+    </div>
+    <div class="card">
+      <a class="list-item" href="#/profile/my-home"><span>내 집 프로필</span><span class="sub">${c.pct}% ›</span></a>
+      <a class="list-item" href="#/profile/wishlist"><span>매수 희망 조건</span><span class="sub">›</span></a>
+      <a class="list-item" href="#/notifications"><span>알림 설정</span><span class="sub">›</span></a>
+    </div>
+    <button class="btn ghost" onclick="localStorage.removeItem('djm');go('#/');render()">프로토타입 초기화 (로그아웃)</button></div>`;
+};
+
+render();
+</script>
