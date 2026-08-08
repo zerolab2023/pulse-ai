@@ -12,6 +12,7 @@
 | [03. 매칭 알고리즘](docs/03-matching-algorithm.md) | 그래프 모델링, 사이클 탐색, TTC, 가중치 설계 |
 | [04. 데이터 모델](docs/04-data-model.md) | ERD, 테이블 정의, 설계 원칙 |
 | [05. 로드맵 & 기술 스택](docs/05-roadmap.md) | Phase 0~3, 스택 제안, 리스크, KPI |
+| [06. 외부 API 조사](docs/06-external-apis.md) | 등기부·소유주 검증, 본인확인, 카카오 전자증명서, 세금 데이터, 알림톡, 결제·증빙 |
 
 ## 핵심 기능 (8)
 
